@@ -27,8 +27,6 @@ db.sqlite3-journal
 local_settings.py
 staticfiles/
 media/
-**/migrations/*.py
-!**/migrations/__init__.py
 
 # Testing / coverage
 .coverage

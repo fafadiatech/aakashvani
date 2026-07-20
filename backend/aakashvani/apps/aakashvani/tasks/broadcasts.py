@@ -5,7 +5,7 @@ from apps.aakashvani.models import Broadcast, BroadcastDeviceTarget, Device, Dev
 
 def dispatch_broadcast(broadcast_id):
     broadcast = Broadcast.objects.get(id=broadcast_id)
-    if broadcast.source_type == Broadcast.SourceType.CLIP and broadcast.chime_id == "bell":
+    if broadcast.chime_id == "bell":
         _queue_bell_events_for_broadcast(broadcast)
     broadcast.state = Broadcast.State.PLAYING
     broadcast.save(update_fields=["state", "updated_at"])

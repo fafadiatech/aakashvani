@@ -43,7 +43,10 @@ class DeviceViewSet(viewsets.ModelViewSet):
             return Response({"detail": "Invalid device credentials."}, status=status.HTTP_401_UNAUTHORIZED)
 
         event = (
-            DeviceEvent.objects.filter(device=device, status=DeviceEvent.Status.PENDING)
+            DeviceEvent.objects.filter(
+                device=device,
+                status__in=[DeviceEvent.Status.PENDING, DeviceEvent.Status.DELIVERED],
+            )
             .order_by("created_at")
             .first()
         )
@@ -51,9 +54,10 @@ class DeviceViewSet(viewsets.ModelViewSet):
             return Response(status=status.HTTP_204_NO_CONTENT)
 
         now = timezone.now()
-        event.status = DeviceEvent.Status.DELIVERED
-        event.delivered_at = now
-        event.save(update_fields=["status", "delivered_at", "updated_at"])
+        if event.status == DeviceEvent.Status.PENDING:
+            event.status = DeviceEvent.Status.DELIVERED
+            event.delivered_at = now
+            event.save(update_fields=["status", "delivered_at", "updated_at"])
         return Response(DeviceEventSerializer(event).data)
 
     @action(
