@@ -1,6 +1,6 @@
 from .accounts import User, UserZoneScope
 from .broadcasts import Broadcast, BroadcastAck, BroadcastDeviceTarget, BroadcastZoneTarget
-from .devices import Device, DeviceLog, OTAJob
+from .devices import Device, DeviceEvent, DeviceLog, OTAJob
 from .integrations import Trigger
 from .library import AudioClip, Voice
 from .schedules import Schedule, ScheduleDeviceTarget, ScheduleZoneTarget
@@ -15,6 +15,7 @@ __all__ = [
     "BroadcastDeviceTarget",
     "BroadcastZoneTarget",
     "Device",
+    "DeviceEvent",
     "DeviceLog",
     "OTAJob",
     "Schedule",

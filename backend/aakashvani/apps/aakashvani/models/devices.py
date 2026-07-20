@@ -35,6 +35,32 @@ class DeviceLog(UUIDModel):
         ordering = ["-logged_at"]
 
 
+class DeviceEvent(TimestampedModel):
+    class EventType(models.TextChoices):
+        BELL = "bell", "Bell"
+
+    class Status(models.TextChoices):
+        PENDING = "pending", "Pending"
+        DELIVERED = "delivered", "Delivered"
+        ACKED = "acked", "Acked"
+        FAILED = "failed", "Failed"
+
+    class AckStatus(models.TextChoices):
+        PLAYED = "played", "Played"
+        FAILED = "failed", "Failed"
+
+    device = models.ForeignKey(Device, on_delete=models.CASCADE, related_name="events")
+    event_type = models.CharField(max_length=30, choices=EventType.choices)
+    payload = models.JSONField(default=dict, blank=True)
+    status = models.CharField(max_length=20, choices=Status.choices, default=Status.PENDING)
+    delivered_at = models.DateTimeField(null=True, blank=True)
+    acknowledged_at = models.DateTimeField(null=True, blank=True)
+    ack_status = models.CharField(max_length=20, choices=AckStatus.choices, blank=True)
+
+    class Meta:
+        ordering = ["created_at"]
+
+
 class OTAJob(UUIDModel):
     class Status(models.TextChoices):
         PENDING = "pending", "Pending"

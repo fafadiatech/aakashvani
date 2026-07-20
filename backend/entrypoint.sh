@@ -24,4 +24,14 @@ echo "PostgreSQL is ready."
 python manage.py migrate --noinput
 python manage.py seed_dev_data
 
+if python manage.py shell -c "
+from apps.aakashvani.models import User
+import sys
+sys.exit(0 if User.objects.filter(email__endswith='@loadtest.aakashvani.local').exists() else 1)
+" >/dev/null 2>&1; then
+  echo "Load testing data already exists. Skipping load_testing_data."
+else
+  python manage.py load_testing_data
+fi
+
 exec "$@"
