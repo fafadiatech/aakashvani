@@ -1,0 +1,18 @@
+{
+  "@@locale": "en",
+  "appTitle": "Aakashvani",
+  "loginTitle": "Sign In",
+  "selectRole": "Select Role",
+  "roleAdmin": "Administrator",
+  "roleBroadcaster": "Broadcaster",
+  "roleViewer": "Viewer",
+  "continueButton": "Continue",
+  "tabBroadcast": "Broadcast",
+  "tabDevices": "Devices",
+  "tabActivity": "Activity",
+  "tabAdmin": "Admin",
+  "tabSchedule": "Schedule",
+  "tabLibrary": "Library",
+  "tabStatus": "Status",
+  "tabHistory": "History"
+}

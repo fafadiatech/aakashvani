@@ -1,0 +1,18 @@
+{
+  "@@locale": "mr",
+  "appTitle": "आकाशवाणी",
+  "loginTitle": "साइन इन करा",
+  "selectRole": "भूमिका निवडा",
+  "roleAdmin": "प्रशासक",
+  "roleBroadcaster": "प्रसारक",
+  "roleViewer": "दर्शक",
+  "continueButton": "पुढे जा",
+  "tabBroadcast": "प्रसारण",
+  "tabDevices": "डिव्हाइस",
+  "tabActivity": "क्रियाकलाप",
+  "tabAdmin": "प्रशासन",
+  "tabSchedule": "वेळापत्रक",
+  "tabLibrary": "ग्रंथालय",
+  "tabStatus": "स्थिती",
+  "tabHistory": "इतिहास"
+}
