@@ -1,0 +1,16 @@
+[Unit]
+Description=Aakashvani Raspberry Pi Bell Listener
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=pi
+WorkingDirectory=/home/pi/aakashvani/device
+EnvironmentFile=/home/pi/aakashvani/device/.env
+ExecStart=/home/pi/aakashvani/device/.venv/bin/python /home/pi/aakashvani/device/main.py
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
