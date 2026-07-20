@@ -1,0 +1,7 @@
+Django
+psycopg[binary]
+djangorestframework
+django-filter
+drf-spectacular
+django-rest-knox
+Pillow
