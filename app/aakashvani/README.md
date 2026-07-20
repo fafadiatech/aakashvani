@@ -24,9 +24,21 @@ flutter run
 
 ```bash
 flutter run \
-  --dart-define=API_BASE_URL=http://your-pi-hub:8080 \
-  --dart-define=WS_URL=ws://your-pi-hub:8080/ws \
-  --dart-define=USE_MOCK=false
+  --dart-define=USE_MOCK=false \
+  --dart-define=API_BASE_URL=http://127.0.0.1:8000/api/v1
+```
+
+On the **Android emulator**, `127.0.0.1` is rewritten to `10.0.2.2` automatically.
+If that still fails, pass `--dart-define=API_BASE_URL=http://10.0.2.2:8000/api/v1` explicitly,
+and ensure the Django server is listening (`runserver 0.0.0.0:8000` if needed).
+
+Optional WebSocket URL (not used for bell delivery yet):
+
+```bash
+flutter run \
+  --dart-define=USE_MOCK=false \
+  --dart-define=API_BASE_URL=http://127.0.0.1:8000/api/v1 \
+  --dart-define=WS_URL=ws://127.0.0.1:8000/ws
 ```
 
 ---

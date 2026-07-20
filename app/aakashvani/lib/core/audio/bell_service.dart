@@ -6,9 +6,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 class BellService {
   final AudioPlayer _player = AudioPlayer();
 
-  /// Plays `assets/sounds/bell.mp3`.
+  /// Plays `assets/sounds/bell.wav`.
   /// AssetSource omits the leading `assets/` prefix automatically.
-  Future<void> ring() => _player.play(AssetSource('sounds/bell.mp3'));
+  Future<void> ring() => _player.play(AssetSource('sounds/bell.wav'));
 
   void dispose() => _player.dispose();
 }

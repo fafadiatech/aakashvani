@@ -9,12 +9,19 @@ import 'package:aakashvani/domain/models/broadcast.dart';
 import 'package:aakashvani/domain/models/voice.dart';
 import 'package:aakashvani/domain/models/zone.dart';
 import 'package:aakashvani/features/auth/presentation/auth_provider.dart';
+import 'package:aakashvani/core/config.dart';
+import 'package:aakashvani/core/api/api_client.dart';
+import 'package:aakashvani/features/broadcast/data/api_broadcast_repository.dart';
 import 'package:aakashvani/features/broadcast/data/mock_broadcast_repository.dart';
 import 'package:aakashvani/features/broadcast/domain/i_broadcast_repository.dart';
 
 // Singleton repository
 final broadcastRepositoryProvider = Provider<IBroadcastRepository>((ref) {
-  return MockBroadcastRepository();
+  if (AppConfig.useMock) {
+    return MockBroadcastRepository();
+  }
+  final client = ref.watch(apiClientProvider);
+  return ApiBroadcastRepository(client);
 });
 
 final zonesProvider = FutureProvider<List<Zone>>((ref) {
