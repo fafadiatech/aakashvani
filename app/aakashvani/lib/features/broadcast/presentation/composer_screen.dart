@@ -5,6 +5,8 @@ import 'package:aakashvani/app/theme/app_theme.dart';
 import 'package:aakashvani/domain/models/audio_clip.dart';
 import 'package:aakashvani/domain/models/broadcast.dart';
 import 'package:aakashvani/features/broadcast/presentation/broadcast_provider.dart';
+import 'package:aakashvani/features/library/presentation/library_provider.dart';
+import 'package:aakashvani/features/library/presentation/widgets/audio_recorder_panel.dart';
 
 class ComposerScreen extends ConsumerStatefulWidget {
   const ComposerScreen({super.key});
@@ -74,6 +76,7 @@ class _ComposerScreenState extends ConsumerState<ComposerScreen>
     );
   }
 }
+
 
 // ── TTS Tab ────────────────────────────────────────────────────────────────
 
@@ -374,24 +377,35 @@ class _SourceBadge extends StatelessWidget {
   }
 }
 
-// ── Record Tab (Stub) ──────────────────────────────────────────────────────
+// ── Record Tab ─────────────────────────────────────────────────────────────
 
-class _RecordTab extends StatelessWidget {
+class _RecordTab extends ConsumerWidget {
   const _RecordTab();
 
   @override
-  Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(Icons.mic_none_rounded, size: 64, color: cs.outline),
-          const SizedBox(height: 16),
-          Text('In-app Recording', style: Theme.of(context).textTheme.titleMedium),
-          const SizedBox(height: 8),
-          Text('Available in M4', style: TextStyle(color: cs.outline)),
-        ],
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Padding(
+      padding: const EdgeInsets.all(24),
+      child: AudioRecorderPanel(
+        primaryActionLabel: 'Use Recording',
+        readyMessage: 'Recording ready',
+        onSave: ({
+          required String title,
+          required String category,
+          required int durationMs,
+          required String? filePath,
+        }) async {
+          final clip = await ref.read(libraryRepositoryProvider).addClip(
+                title: title,
+                category: category,
+                durationMs: durationMs,
+                source: ClipSource.recorded,
+                filePath: filePath,
+              );
+          ref.read(composerDraftProvider.notifier).useClip(clip.id);
+          ref.invalidate(clipsProvider);
+          ref.invalidate(libraryClipsProvider);
+        },
       ),
     );
   }

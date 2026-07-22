@@ -116,6 +116,11 @@ class ComposerDraftNotifier extends Notifier<ComposerDraft> {
   void updateTtsText(String text) => state = state.copyWith(ttsText: text);
   void updateVoice(String? id) => state = state.copyWith(voiceId: id);
   void updateClip(String? id) => state = state.copyWith(clipId: id);
+
+  void useClip(String id) => state = state.copyWith(
+        sourceType: BroadcastSourceType.clip,
+        clipId: id,
+      );
   void updateTargetAll(bool v) =>
       state = state.copyWith(targetAll: v, targetZoneIds: []);
   void toggleZone(String zoneId) {

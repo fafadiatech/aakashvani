@@ -9,6 +9,7 @@ import 'package:aakashvani/domain/models/voice.dart';
 import 'package:aakashvani/domain/models/zone.dart';
 import 'package:aakashvani/features/broadcast/data/broadcast_mappers.dart';
 import 'package:aakashvani/features/broadcast/domain/i_broadcast_repository.dart';
+import 'package:aakashvani/features/library/data/library_mappers.dart';
 
 class ApiBroadcastRepository implements IBroadcastRepository {
   ApiBroadcastRepository(this._client);
@@ -46,7 +47,12 @@ class ApiBroadcastRepository implements IBroadcastRepository {
   }
 
   @override
-  Future<List<AudioClip>> getClips() async => const [];
+  Future<List<AudioClip>> getClips() async {
+    final response = await _client.dio.get<dynamic>('/library/clips/');
+    return extractList(response.data)
+        .map((item) => audioClipFromJson(item as Map<String, dynamic>))
+        .toList();
+  }
 
   @override
   Future<List<Voice>> getVoices() async => const [];

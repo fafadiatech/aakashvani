@@ -171,7 +171,6 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
       category: 'announcements',
       durationMs: 4000 + (DateTime.now().millisecondsSinceEpoch % 6000),
       source: ClipSource.uploaded,
-      url: 'mock://clips/upload_${DateTime.now().millisecondsSinceEpoch}.mp3',
     );
     ref.invalidate(libraryClipsProvider);
     if (context.mounted) {

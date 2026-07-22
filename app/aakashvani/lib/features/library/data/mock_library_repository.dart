@@ -18,7 +18,7 @@ class MockLibraryRepository implements ILibraryRepository {
     required String category,
     required int durationMs,
     required ClipSource source,
-    required String url,
+    String? filePath,
   }) async {
     await Future.delayed(const Duration(milliseconds: 400));
     final clip = AudioClip(
@@ -27,7 +27,8 @@ class MockLibraryRepository implements ILibraryRepository {
       category: category,
       durationMs: durationMs,
       source: source,
-      url: url,
+      url: filePath ??
+          'mock://clips/${source.name}_${DateTime.now().millisecondsSinceEpoch}.m4a',
     );
     _clips.add(clip);
     _nextId++;

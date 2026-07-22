@@ -7,7 +7,7 @@ abstract interface class ILibraryRepository {
     required String category,
     required int durationMs,
     required ClipSource source,
-    required String url,
+    String? filePath,
   });
   Future<void> deleteClip(String id);
 }

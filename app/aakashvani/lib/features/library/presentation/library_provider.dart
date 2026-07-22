@@ -1,10 +1,17 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:aakashvani/core/api/api_client.dart';
+import 'package:aakashvani/core/config.dart';
 import 'package:aakashvani/domain/models/audio_clip.dart';
+import 'package:aakashvani/features/library/data/api_library_repository.dart';
 import 'package:aakashvani/features/library/data/mock_library_repository.dart';
 import 'package:aakashvani/features/library/domain/i_library_repository.dart';
 
 final libraryRepositoryProvider = Provider<ILibraryRepository>((ref) {
-  return MockLibraryRepository();
+  if (AppConfig.useMock) {
+    return MockLibraryRepository();
+  }
+  final client = ref.watch(apiClientProvider);
+  return ApiLibraryRepository(client);
 });
 
 final libraryClipsProvider = FutureProvider<List<AudioClip>>((ref) {
