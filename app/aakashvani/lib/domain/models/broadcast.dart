@@ -45,13 +45,29 @@ class BroadcastAck {
   final String deviceId;
   final AckStatus status;
   final DateTime? at;
+  final String? deviceName;
+  final String? zoneName;
 
-  const BroadcastAck({required this.deviceId, required this.status, this.at});
+  const BroadcastAck({
+    required this.deviceId,
+    required this.status,
+    this.at,
+    this.deviceName,
+    this.zoneName,
+  });
 
-  BroadcastAck copyWith({AckStatus? status, DateTime? at}) => BroadcastAck(
+  BroadcastAck copyWith({
+    AckStatus? status,
+    DateTime? at,
+    String? deviceName,
+    String? zoneName,
+  }) =>
+      BroadcastAck(
         deviceId: deviceId,
         status: status ?? this.status,
         at: at ?? this.at,
+        deviceName: deviceName ?? this.deviceName,
+        zoneName: zoneName ?? this.zoneName,
       );
 }
 

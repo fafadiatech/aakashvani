@@ -12,9 +12,16 @@ from apps.core.serializers import TimestampedSerializer
 
 
 class BroadcastAckSerializer(serializers.ModelSerializer):
+    device_name = serializers.CharField(source="device.name", read_only=True)
+    zone_name = serializers.SerializerMethodField()
+
     class Meta:
         model = BroadcastAck
         fields = "__all__"
+
+    def get_zone_name(self, obj):
+        zone = obj.device.zone
+        return zone.name if zone else None
 
 
 class BroadcastSerializer(TimestampedSerializer):

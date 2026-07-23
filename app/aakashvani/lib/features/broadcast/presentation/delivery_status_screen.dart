@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 import 'package:aakashvani/app/theme/app_theme.dart';
 import 'package:aakashvani/domain/models/broadcast.dart';
 import 'package:aakashvani/features/broadcast/presentation/broadcast_provider.dart';
-import 'package:aakashvani/mock/seed_data.dart';
 
 class DeliveryStatusScreen extends ConsumerWidget {
   final String broadcastId;
@@ -175,14 +174,10 @@ class _AckRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    final device = seedDevices.firstWhere(
-      (d) => d.id == ack.deviceId,
-      orElse: () => seedDevices.first,
-    );
-    final zone = seedZones.firstWhere(
-      (z) => z.id == device.zoneId,
-      orElse: () => seedZones.first,
-    );
+    final deviceLabel = ack.deviceName?.isNotEmpty == true
+        ? ack.deviceName!
+        : _shortDeviceId(ack.deviceId);
+    final zoneLabel = ack.zoneName?.isNotEmpty == true ? ack.zoneName! : 'Unknown zone';
 
     final (statusLabel, statusIcon, statusColor) = switch (ack.status) {
       AckStatus.pending => ('Waiting…', Icons.hourglass_top_rounded, cs.outline),
@@ -207,9 +202,9 @@ class _AckRow extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(device.name,
+                Text(deviceLabel,
                     style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
-                Text(zone.name,
+                Text(zoneLabel,
                     style: TextStyle(fontSize: 11, color: cs.outline)),
               ],
             ),
@@ -237,6 +232,11 @@ class _AckRow extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  String _shortDeviceId(String id) {
+    if (id.length <= 8) return 'Device $id';
+    return 'Device ${id.substring(0, 8)}';
   }
 }
 

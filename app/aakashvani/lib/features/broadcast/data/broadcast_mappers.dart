@@ -1,4 +1,5 @@
 import 'package:aakashvani/domain/models/broadcast.dart';
+import 'package:aakashvani/domain/models/voice.dart';
 import 'package:aakashvani/domain/models/zone.dart';
 
 Zone zoneFromJson(Map<String, dynamic> json, {List<String> deviceIds = const []}) {
@@ -7,6 +8,14 @@ Zone zoneFromJson(Map<String, dynamic> json, {List<String> deviceIds = const []}
     name: json['name'] as String,
     deviceIds: deviceIds,
     defaultVolume: json['default_volume'] as int? ?? 80,
+  );
+}
+
+Voice voiceFromJson(Map<String, dynamic> json) {
+  return Voice(
+    id: json['id'] as String,
+    label: json['label'] as String? ?? json['id'] as String,
+    languageCode: json['language_code'] as String? ?? '',
   );
 }
 
@@ -59,6 +68,8 @@ List<BroadcastAck> _acksFromJson(dynamic raw) {
       deviceId: json['device'] as String,
       status: AckStatus.values.byName(statusName),
       at: acknowledgedAt != null ? DateTime.tryParse(acknowledgedAt as String) : null,
+      deviceName: json['device_name'] as String?,
+      zoneName: json['zone_name'] as String?,
     );
   }).toList();
 }

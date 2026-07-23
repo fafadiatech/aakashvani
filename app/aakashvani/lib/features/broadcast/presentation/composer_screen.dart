@@ -133,15 +133,31 @@ class _TtsTabState extends ConsumerState<_TtsTab> {
           voices.when(
             loading: () => const LinearProgressIndicator(),
             error: (e, _) => Text('Error: $e'),
-            data: (list) => DropdownButtonFormField<String>(
-              initialValue: draft.voiceId ?? list.first.id,
-              decoration: const InputDecoration(border: OutlineInputBorder()),
-              items: list
-                  .map((v) => DropdownMenuItem(value: v.id, child: Text(v.label)))
-                  .toList(),
-              onChanged: (id) =>
-                  ref.read(composerDraftProvider.notifier).updateVoice(id),
-            ),
+            data: (list) {
+              if (list.isEmpty) {
+                return Text(
+                  'No voices available',
+                  style: TextStyle(color: Theme.of(context).colorScheme.outline),
+                );
+              }
+              final selected =
+                  list.any((v) => v.id == draft.voiceId) ? draft.voiceId : list.first.id;
+              if (draft.voiceId != selected) {
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  ref.read(composerDraftProvider.notifier).updateVoice(selected);
+                });
+              }
+              return DropdownButtonFormField<String>(
+                initialValue: selected,
+                decoration: const InputDecoration(border: OutlineInputBorder()),
+                items: list
+                    .map((v) =>
+                        DropdownMenuItem(value: v.id, child: Text(v.label)))
+                    .toList(),
+                onChanged: (id) =>
+                    ref.read(composerDraftProvider.notifier).updateVoice(id),
+              );
+            },
           ),
         ],
       ),

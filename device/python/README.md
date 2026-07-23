@@ -1,13 +1,16 @@
-# Aakashvani Raspberry Pi Bell Listener
+# Aakashvani Raspberry Pi Device Listener
 
-Python polling daemon for Raspberry Pi that listens for bell events from the Aakashvani backend and plays a local bell sound.
+Python polling daemon for Raspberry Pi that listens for broadcast events from the Aakashvani backend and plays audio.
 
 ## How it works
 
-1. Flutter app calls `POST /api/v1/broadcasts/ring-bell/`.
-2. Backend creates per-device `DeviceEvent` records with `event_type=bell`.
+1. App creates a broadcast (`POST /api/v1/broadcasts/` or `ring-bell/`).
+2. Backend queues per-device `DeviceEvent` records (`bell`, `tts`, or `clip`).
 3. This daemon polls `GET /api/v1/devices/{device_id}/events/next/` every 2 seconds.
-4. When an event is received, the daemon plays `assets/bell.wav`.
+4. On receive:
+   - `bell` — plays local `assets/bell.wav`
+   - `tts` — speaks `payload.text` via `espeak-ng` / `espeak` / `say`
+   - `clip` — downloads `payload.audio_url` and plays it
 5. The daemon acks with `POST /api/v1/devices/{device_id}/events/{event_id}/ack/`.
 
 ## Setup
@@ -26,7 +29,7 @@ Install audio tools on Raspberry Pi:
 
 ```bash
 sudo apt update
-sudo apt install -y alsa-utils
+sudo apt install -y alsa-utils espeak-ng
 ```
 
 ## Run manually
@@ -80,12 +83,23 @@ curl -X POST http://127.0.0.1:8000/api/v1/broadcasts/ring-bell/ \
   -d '{"zone_targets":["<zone-uuid>"]}'
 ```
 
-5. Confirm daemon logs show event received and acked with `played`.
-6. Remove `--no-play` and confirm bell audio plays on the Pi.
+Or send a TTS announcement:
 
-## API contract
+```bash
+curl -X POST http://127.0.0.1:8000/api/v1/broadcasts/ \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "source_type": "tts",
+    "tts_text": "Assembly in five minutes",
+    "tts_voice_id": "en-IN-F",
+    "priority": "normal",
+    "target_all": false,
+    "zone_targets": ["<zone-uuid>"]
+  }'
+```
 
-- Auth header: `Authorization: Device <api_key>`
-- Query fallback: `?api_key=<api_key>`
-- Poll: `GET /devices/{id}/events/next/` returns `204` when queue is empty
-- Ack body: `{"status":"played"}` or `{"status":"failed"}`
+5. Confirm the daemon logs the event and acks `played`.
+6. Confirm broadcast acks move to `played` in the API / Flutter delivery screen.
+
+For clip playback, ensure `PUBLIC_BASE_URL` on the backend is reachable from the device (default `http://127.0.0.1:8000`).

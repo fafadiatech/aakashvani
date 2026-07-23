@@ -6,9 +6,9 @@ import 'package:aakashvani/core/connectivity/connectivity_provider.dart';
 import 'package:aakashvani/core/database/cache_repository.dart';
 import 'package:aakashvani/domain/models/broadcast.dart';
 import 'package:aakashvani/features/auth/presentation/auth_provider.dart';
+import 'package:aakashvani/domain/models/zone.dart';
 import 'package:aakashvani/features/broadcast/presentation/broadcast_provider.dart';
 import 'package:aakashvani/core/offline/offline_banner.dart';
-import 'package:aakashvani/mock/seed_data.dart';
 
 class PreviewSendScreen extends ConsumerStatefulWidget {
   const PreviewSendScreen({super.key});
@@ -65,8 +65,9 @@ class _PreviewSendScreenState extends ConsumerState<PreviewSendScreen> {
   @override
   Widget build(BuildContext context) {
     final draft = ref.watch(composerDraftProvider);
-
-    final targetDeviceCount = _estimateDeviceCount(draft);
+    final zones = ref.watch(zonesProvider).value ?? const <Zone>[];
+    final targetDeviceCount = _estimateDeviceCount(draft, zones);
+    final targetLabel = _targetLabel(draft, targetDeviceCount);
 
     return Scaffold(
       appBar: AppBar(title: const Text('Preview & Send')),
@@ -96,11 +97,7 @@ class _PreviewSendScreenState extends ConsumerState<PreviewSendScreen> {
                   _SummaryCard(
                     icon: Icons.speaker_group_rounded,
                     label: 'Target',
-                    child: Text(
-                      draft.targetAll
-                          ? 'All zones ($targetDeviceCount devices)'
-                          : '${draft.targetZoneIds.length} zone(s) · ~$targetDeviceCount devices',
-                    ),
+                    child: Text(targetLabel),
                   ),
                   const SizedBox(height: 12),
                   _SummaryCard(
@@ -134,11 +131,21 @@ class _PreviewSendScreenState extends ConsumerState<PreviewSendScreen> {
     );
   }
 
-  int _estimateDeviceCount(ComposerDraft draft) {
-    if (draft.targetAll) return seedDevices.length;
-    return seedDevices
-        .where((d) => draft.targetZoneIds.contains(d.zoneId))
-        .length;
+  int _estimateDeviceCount(ComposerDraft draft, List<Zone> zones) {
+    final relevant = draft.targetAll
+        ? zones
+        : zones.where((z) => draft.targetZoneIds.contains(z.id));
+    return relevant.fold<int>(0, (sum, z) => sum + z.deviceIds.length);
+  }
+
+  String _targetLabel(ComposerDraft draft, int deviceCount) {
+    if (draft.targetAll) {
+      return deviceCount > 0
+          ? 'All zones ($deviceCount devices)'
+          : 'All zones';
+    }
+    final zoneLabel = '${draft.targetZoneIds.length} zone(s)';
+    return deviceCount > 0 ? '$zoneLabel · ~$deviceCount devices' : zoneLabel;
   }
 
   Color _priorityColor(BroadcastPriority p) => switch (p) {

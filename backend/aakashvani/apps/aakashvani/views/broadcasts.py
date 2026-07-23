@@ -27,7 +27,7 @@ class BroadcastViewSet(viewsets.ModelViewSet):
         zone_ids = scoped_zone_ids(self.request.user)
         if zone_ids is not None:
             qs = qs.filter(zone_targets__zone_id__in=zone_ids).distinct()
-        return qs
+        return qs.prefetch_related("acks__device__zone")
 
     def _validate_quiet_hours(self, priority):
         settings_obj = AppSettings.objects.first()

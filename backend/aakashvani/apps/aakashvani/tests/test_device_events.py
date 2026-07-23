@@ -1,9 +1,10 @@
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
 
-from apps.aakashvani.models import Broadcast, BroadcastAck, Device, DeviceEvent, Zone
+from apps.aakashvani.models import AudioClip, Broadcast, BroadcastAck, Device, DeviceEvent, Zone
 from apps.aakashvani.tasks.broadcasts import dispatch_broadcast
 
 
@@ -82,5 +83,57 @@ class BellDispatchTests(TestCase):
         events = DeviceEvent.objects.filter(device=self.device, event_type=DeviceEvent.EventType.BELL)
         self.assertEqual(events.count(), 1)
         self.assertEqual(events.first().payload["chime_id"], "bell")
+        broadcast.refresh_from_db()
+        self.assertEqual(broadcast.state, Broadcast.State.PLAYING)
+
+
+class AnnouncementDispatchTests(TestCase):
+    def setUp(self):
+        self.zone = Zone.objects.create(name="Library")
+        self.device = Device.objects.create(name="Pi Announce", model="Raspberry Pi 4", zone=self.zone)
+
+    def test_dispatch_creates_tts_events(self):
+        broadcast = Broadcast.objects.create(
+            source_type=Broadcast.SourceType.TTS,
+            tts_text="Assembly in 5 minutes",
+            tts_voice_id="en-IN-F",
+            target_all=False,
+        )
+        broadcast.zone_targets.create(zone=self.zone)
+        BroadcastAck.objects.create(broadcast=broadcast, device=self.device)
+
+        dispatch_broadcast(broadcast.id)
+
+        events = DeviceEvent.objects.filter(device=self.device, event_type=DeviceEvent.EventType.TTS)
+        self.assertEqual(events.count(), 1)
+        payload = events.first().payload
+        self.assertEqual(payload["text"], "Assembly in 5 minutes")
+        self.assertEqual(payload["voice_id"], "en-IN-F")
+        broadcast.refresh_from_db()
+        self.assertEqual(broadcast.state, Broadcast.State.PLAYING)
+
+    def test_dispatch_creates_clip_events_with_audio_url(self):
+        clip = AudioClip.objects.create(
+            title="Lunch bell",
+            category="general",
+            duration_ms=1200,
+            source=AudioClip.Source.UPLOADED,
+            file=SimpleUploadedFile("lunch.wav", b"RIFF....", content_type="audio/wav"),
+        )
+        broadcast = Broadcast.objects.create(
+            source_type=Broadcast.SourceType.CLIP,
+            clip=clip,
+            target_all=False,
+        )
+        broadcast.zone_targets.create(zone=self.zone)
+        BroadcastAck.objects.create(broadcast=broadcast, device=self.device)
+
+        dispatch_broadcast(broadcast.id)
+
+        events = DeviceEvent.objects.filter(device=self.device, event_type=DeviceEvent.EventType.CLIP)
+        self.assertEqual(events.count(), 1)
+        payload = events.first().payload
+        self.assertIn("/media/", payload["audio_url"])
+        self.assertEqual(payload["clip_id"], str(clip.id))
         broadcast.refresh_from_db()
         self.assertEqual(broadcast.state, Broadcast.State.PLAYING)

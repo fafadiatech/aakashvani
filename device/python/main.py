@@ -63,6 +63,13 @@ def main() -> int:
         try:
             if event.event_type == "bell":
                 player.play()
+            elif event.event_type == "tts":
+                player.speak(
+                    str(event.payload.get("text", "")),
+                    voice_id=event.payload.get("voice_id") or None,
+                )
+            elif event.event_type == "clip":
+                player.play_url(str(event.payload.get("audio_url", "")))
             else:
                 logging.warning("Unsupported event type: %s", event.event_type)
                 ack_status = "failed"

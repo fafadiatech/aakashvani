@@ -38,6 +38,8 @@ class DeviceLog(UUIDModel):
 class DeviceEvent(TimestampedModel):
     class EventType(models.TextChoices):
         BELL = "bell", "Bell"
+        TTS = "tts", "TTS"
+        CLIP = "clip", "Clip"
 
     class Status(models.TextChoices):
         PENDING = "pending", "Pending"

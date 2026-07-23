@@ -16,6 +16,9 @@ class ApiBroadcastRepository implements IBroadcastRepository {
 
   final ApiClient _client;
 
+  static const _pollInterval = Duration(seconds: 2);
+  static const _maxPollDuration = Duration(minutes: 5);
+
   @override
   Future<List<Zone>> getZones() async {
     final zonesResponse = await _client.dio.get<dynamic>('/zones/');
@@ -55,11 +58,52 @@ class ApiBroadcastRepository implements IBroadcastRepository {
   }
 
   @override
-  Future<List<Voice>> getVoices() async => const [];
+  Future<List<Voice>> getVoices() async {
+    final response = await _client.dio.get<dynamic>('/library/voices/');
+    return extractList(response.data)
+        .map((item) => voiceFromJson(item as Map<String, dynamic>))
+        .toList();
+  }
 
   @override
-  Future<Broadcast> sendBroadcast(BroadcastSpec spec, User sender) {
-    throw UnimplementedError('Composer broadcasts are not wired to the API yet.');
+  Future<Broadcast> sendBroadcast(BroadcastSpec spec, User sender) async {
+    try {
+      final data = <String, dynamic>{
+        'source_type': spec.source.type.name,
+        'priority': spec.priority.name,
+        'target_all': spec.targets.all,
+        'zone_targets': spec.targets.zoneIds,
+        'device_targets': spec.targets.deviceIds,
+        if (spec.chimeId != null && spec.chimeId!.isNotEmpty)
+          'chime_id': spec.chimeId,
+      };
+
+      if (spec.source.type == BroadcastSourceType.tts) {
+        data['tts_text'] = spec.source.text ?? '';
+        data['tts_voice_id'] = spec.source.voiceId ?? '';
+        data['clip'] = null;
+      } else {
+        data['tts_text'] = '';
+        data['tts_voice_id'] = '';
+        data['clip'] = spec.source.clipId;
+      }
+
+      final response = await _client.dio.post<Map<String, dynamic>>(
+        '/broadcasts/',
+        data: data,
+      );
+      final body = response.data;
+      if (body == null) {
+        throw Exception('Empty response from server.');
+      }
+      return broadcastFromJson(
+        body,
+        zoneIds: spec.targets.zoneIds,
+        deviceIds: spec.targets.deviceIds,
+      );
+    } on DioException catch (e) {
+      throw Exception(_dioMessage(e));
+    }
   }
 
   @override
@@ -99,13 +143,50 @@ class ApiBroadcastRepository implements IBroadcastRepository {
 
   @override
   Stream<Broadcast> streamBroadcast(String id) async* {
-    // Real-time delivery status is not available yet; emit current state once.
-    final response =
-        await _client.dio.get<Map<String, dynamic>>('/broadcasts/$id/');
-    final data = response.data;
-    if (data != null) {
-      yield broadcastFromJson(data);
+    final deadline = DateTime.now().add(_maxPollDuration);
+    Broadcast? previous;
+
+    while (DateTime.now().isBefore(deadline)) {
+      try {
+        final response =
+            await _client.dio.get<Map<String, dynamic>>('/broadcasts/$id/');
+        final data = response.data;
+        if (data != null) {
+          final broadcast = broadcastFromJson(data);
+          final changed = previous == null ||
+              previous.state != broadcast.state ||
+              !_acksEqual(previous.acks, broadcast.acks);
+          if (changed) {
+            yield broadcast;
+            previous = broadcast;
+          }
+          if (broadcast.state == BroadcastState.done ||
+              broadcast.state == BroadcastState.stopped) {
+            return;
+          }
+        }
+      } on DioException catch (e) {
+        if (previous == null) throw Exception(_dioMessage(e));
+        // Keep polling through transient errors after first successful fetch.
+      }
+      await Future<void>.delayed(_pollInterval);
     }
+
+    if (previous != null) {
+      yield previous;
+    }
+  }
+
+  bool _acksEqual(List<BroadcastAck> a, List<BroadcastAck> b) {
+    if (a.length != b.length) return false;
+    for (var i = 0; i < a.length; i++) {
+      if (a[i].deviceId != b[i].deviceId ||
+          a[i].status != b[i].status ||
+          a[i].at != b[i].at) {
+        return false;
+      }
+    }
+    return true;
   }
 
   String _dioMessage(DioException e) {
