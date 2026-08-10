@@ -1,5 +1,10 @@
 # Aakashvani
 
+<p align="center">
+  <img src="logo.png" alt="Aakashvani" width="420"/>
+</p>
+
+
 **Smart broadcasting for every corner of your organization.**
 
 Aakashvani is a platform that lets you send voice announcements, play audio clips, and ring bells across a network of smart speakers — instantly, on a schedule, or in an emergency. Whether you're a school calling students to assembly, a factory alerting a shift change, or an office sending a company-wide update, Aakashvani puts a public address system in your pocket.
